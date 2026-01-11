@@ -1,0 +1,7 @@
+{
+  "name": "Dukaan Guru Landing Page",
+  "description": "Pakistan's first WhatsApp-based AI assistant for small shopkeepers. Manage sales, stock, and udhaar (credit) directly on WhatsApp with Roman Urdu support.",
+  "requestFramePermissions": [
+    "microphone"
+  ]
+}
