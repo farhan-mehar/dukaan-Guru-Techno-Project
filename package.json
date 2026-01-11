@@ -1,4 +1,3 @@
-
 {
   "name": "dukaan-guru",
   "private": true,
@@ -11,6 +10,7 @@
   },
   "dependencies": {
     "@google/genai": "^1.34.0",
+    "@google/generative-ai": "^0.24.1",
     "jspdf": "^2.5.1",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
@@ -20,6 +20,6 @@
     "@types/react-dom": "^19.0.0",
     "@vitejs/plugin-react": "^4.3.4",
     "typescript": "~5.7.2",
-    "vite": "^6.0.5"
+    "vite": "^6.4.1"
   }
 }
