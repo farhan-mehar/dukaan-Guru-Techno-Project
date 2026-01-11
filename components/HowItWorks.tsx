@@ -13,79 +13,62 @@ type InventoryItem = {
   price: number;
   type: "sale" | "stock" | "udhaar";
   action: "upsert" | "delete";
-  customerName?: string;
-  phone?: string;
 };
 
-const HowItWorks: React.FC = () => {
+type HowItWorksProps = {
+  shopName?: string;
+  initialStock?: string;
+};
+
+const HowItWorks: React.FC<HowItWorksProps> = ({
+  shopName = "My Shop"
+}) => {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [recentBatch, setRecentBatch] = useState<InventoryItem[]>([]);
-  const [shopName] = useState<string>("My Shop");
   const [isReportOpen, setIsReportOpen] = useState(false);
 
-  const updateInventory = (items: InventoryItem[]) => {
-    setRecentBatch(prev => [...prev, ...items]);
-  };
-
-  const handleSendMessage = async (
-    e?: React.FormEvent,
-    directText?: string
-  ) => {
+  const handleSendMessage = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
+    if (!input.trim() || loading) return;
 
-    const messageToSend = directText || input;
-    if (!messageToSend.trim() || loading) return;
-
-    setMessages(prev => [...prev, { role: "user", text: messageToSend }]);
-    if (!directText) setInput("");
+    setMessages(prev => [...prev, { role: "user", text: input }]);
     setLoading(true);
+    setInput("");
 
     try {
       const genAI = new GoogleGenerativeAI(
         import.meta.env.VITE_GEMINI_API_KEY
       );
 
-      const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+      const model = genAI.getGenerativeModel({
+        model: "gemini-1.5-flash"
+      });
 
-      const currentStockNames = recentBatch.map(i => i.name).join(", ");
+      const stockNames = recentBatch.map(i => i.name).join(", ");
 
       const prompt = `
-User message: "${messageToSend}"
-
-Context:
-You are Dukaan Guru AI assistant for ${shopName}.
-Current Inventory: ${currentStockNames || "No items yet"}
-
-Instructions:
-- Detect intent: sale, stock, udhaar, or report
-- Reply in simple confirmation message
-- If report requested, say "REPORT"
+You are Dukaan Guru AI for ${shopName}
+Stock: ${stockNames || "No stock yet"}
+User: ${input}
 `;
 
       const result = await model.generateContent(prompt);
-      const text = result.response.text();
+      const reply = result.response.text();
 
-      setMessages(prev => [
-        ...prev,
-        {
-          role: "ai",
-          text: text || "Theek hai, note kar liya."
-        }
-      ]);
+      setMessages(prev => [...prev, { role: "ai", text: reply }]);
 
-      if (text?.toLowerCase().includes("report")) {
+      if (reply.toLowerCase().includes("report")) {
         setIsReportOpen(true);
       }
-
-    } catch (error) {
-      console.error(error);
+    } catch (err) {
+      console.error(err);
       setMessages(prev => [
         ...prev,
         {
           role: "ai",
-          text: "Maf kijiye, koi masla aa gaya hai.",
+          text: "Kuch ghalat ho gaya, dobara koshish karein.",
           isError: true
         }
       ]);
@@ -104,20 +87,18 @@ Instructions:
           onChange={e => setInput(e.target.value)}
           placeholder="Message likhiye..."
         />
-        <button type="submit" disabled={loading}>
+        <button disabled={loading}>
           {loading ? "Soch raha hoon..." : "Send"}
         </button>
       </form>
 
-      <div>
-        {messages.map((m, i) => (
-          <p key={i}>
-            <b>{m.role === "user" ? "You" : "AI"}:</b> {m.text}
-          </p>
-        ))}
-      </div>
+      {messages.map((m, i) => (
+        <p key={i}>
+          <b>{m.role}:</b> {m.text}
+        </p>
+      ))}
 
-      {isReportOpen && <p>📊 Report Generated</p>}
+      {isReportOpen && <p>📊 Report Ready</p>}
     </div>
   );
 };
